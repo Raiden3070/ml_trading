@@ -1,13 +1,11 @@
 import datetime as datetime
 import pandas as pd
-from util import get_data
+from data_utils import fetch_stock_data
 
 
 
-def author():
-    return 'jkim3070'
 
-def compute_portvals(orders_df, start_val=1000000, commission=9.95, impact=0.005,
+def calculate_portfolio_values(orders_df, start_val=1000000, commission=9.95, impact=0.005,
                      sd=datetime.datetime(2008, 1, 1), ed=datetime.datetime(2009, 12, 31),
                      prices_df_override: pd.DataFrame | None = None):
     orders_df = orders_df.sort_index()
@@ -17,7 +15,7 @@ def compute_portvals(orders_df, start_val=1000000, commission=9.95, impact=0.005
     if prices_df_override is not None:
         prices = prices_df_override.copy()
     else:
-        prices = get_data(symbols, pd.date_range(dates[0], dates[-1])).drop(columns='SPY')
+        prices = fetch_stock_data(symbols, pd.date_range(dates[0], dates[-1])).drop(columns='SPY')
 
     if 'SPY' in symbols:
         symbols = symbols.drop('SPY')

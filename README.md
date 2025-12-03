@@ -46,12 +46,6 @@ Train on GOOG 2023 and print the latest BUY/SELL/HOLD for the most recent tradin
 
 Then open the printed URL (usually http://localhost:8501) and click "Train + Predict".
 
-## Deploy to Streamlit Community Cloud
-
-- Push this folder to GitHub
-- Create a new Streamlit app and point it to `strategy_evaluation/streamlit_app.py`
-- Add a secret `ALPHAVANTAGE_API_KEY`
-- Deploy and share the URL
 
 ## Notes
 

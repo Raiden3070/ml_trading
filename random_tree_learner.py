@@ -1,19 +1,14 @@
 import numpy as np
 import random
 
-class RTLearner(object):
+class RandomTreeLearner(object):
 
-    def __init__(self, leaf_size=1, verbose=False):
+    def __init__(self, leaf_size=1):
         self.leaf_size = leaf_size
-        self.verbose = verbose
 
-    def author(self):
-        return 'jkim3070'
 
-    def add_evidence(self, data_x, data_y):
+    def append_training_data(self, data_x, data_y):
         self.tree = self.build_tree(data_x, data_y)
-        if self.verbose:
-            print(f"DTLearner size: \n{self.tree.shape}\n DTLearner tree: \n {self.tree}")
 
     def query(self, values):
         predicted = []

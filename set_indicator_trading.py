@@ -1,30 +1,29 @@
 import numpy as np
 import pandas as pd
-from util import get_data
+from data_utils import fetch_stock_data
 import random as rand
-from indicators import *
-import ManualStrategy as manstr
+from indicator_calculator import *
+import set_indicator_trading as manstr
 import datetime as datetime
-from marketsimcode import compute_portvals
+from portfolio_calculator import calculate_portfolio_values
 import matplotlib.pyplot as plt
 
 
-class ManualStrategy:
+class SetIndicatorTrading:
 
 
-    def __init__(self, verbose=False, impact=0.0, commission=0.0):
-        self.verbose = verbose
+    def __init__(self, impact=0.0, commission=0.0):
         self.impact = impact
         self.commission = commission
 
-    def add_evidence(self, symbol='IBM', sd=datetime.datetime(2008, 1, 1, 0, 0), ed=datetime.datetime(2009, 1, 1, 0, 0), sv=100000):
+    def append_training_data(self, symbol='IBM', sd=datetime.datetime(2008, 1, 1, 0, 0), ed=datetime.datetime(2009, 1, 1, 0, 0), sv=100000):
         pass
 
     def testPolicy(self, symbol='IBM', sd=datetime.datetime(2009, 1, 1, 0, 0), ed=datetime.datetime(2010, 1, 1, 0, 0), sv=100000, price_series=None):
 
         sym = symbol
         if price_series is None:
-            data_df = get_data([sym], pd.date_range(sd, ed))
+            data_df = fetch_stock_data([sym], pd.date_range(sd, ed))
             price_df = data_df[[sym]].ffill().bfill()
         else:
             s = pd.Series(price_series).loc[sd:ed].ffill().bfill()
@@ -112,19 +111,17 @@ class ManualStrategy:
 
         return trades_df
 
-    def author(self):
-        return 'jkim3070'
 
 
 def calculate_benchmark(sym,sd,ed,sv):
-    data_df = get_data([sym], pd.date_range(sd, ed))
+    data_df = fetch_stock_data([sym], pd.date_range(sd, ed))
     price_df = data_df[[sym]]
     price_df = price_df[[sym]].ffill().bfill()
     trades_df = price_df.copy()
     trades_df[:] = 0
     trades_df.loc[trades_df.index[0]] = 1000
     orders_df = trades_to_orders(trades_df)
-    portvals = compute_portvals(orders_df, sv, commission=9.95, impact=0.005, sd=sd, ed=ed)
+    portvals = calculate_portfolio_values(orders_df, sv, commission=9.95, impact=0.005, sd=sd, ed=ed)
     return portvals
 
 def trades_to_orders(trades_df, sym="JPM"):
@@ -164,7 +161,7 @@ def generate_plot(benchmark,portvals, trades_df, test_method):
     benchmark_normalized = benchmark / benchmark.iloc[0]
 
     plt.figure(figsize=(10, 6))
-    portvals_normalized.plot(label='Manual Strategy', color='red')
+    portvals_normalized.plot(label='Set Indicator Strategy', color='red')
     benchmark_normalized.plot(label='Benchmark', color='purple')
 
     l_entry_long = trades_df.index[
@@ -180,15 +177,15 @@ def generate_plot(benchmark,portvals, trades_df, test_method):
     for entry_point in s_entry_short:
         plt.axvline(x=entry_point, color='black', linestyle='-')
 
-    plt.title(f'Performance of Manual Strategy Compared with Benchmark- {test_method}')
+    plt.title(f'Performance of Set Indicator Strategy Compared with Benchmark- {test_method}')
     plt.xlabel('Date')
     plt.ylabel('Normalized Portfolio Value')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f"images/manual_strategy-{test_method}.png")
+    plt.savefig(f"images/setindicators-{test_method}.png")
     #plt.show()
 def test_code():
-    man_strat = ManualStrategy(verbose=False, impact=0.0, commission=0.0)
+    man_strat = SetIndicatorTrading(impact=0.0, commission=0.0)
     in_dates_sd = datetime.datetime(2008, 1, 1)
     in_dates_ed = datetime.datetime(2009, 12, 31)
     out_dates_sd = datetime.datetime(2010, 1, 1)
@@ -199,20 +196,20 @@ def test_code():
     man_strat_trades_df_in = man_strat.testPolicy(symbol="JPM", sd=in_dates_sd,ed=in_dates_ed, sv=sv)
     man_strat_orders_df_in = trades_to_orders(man_strat_trades_df_in, sym)
 
-    man_strat_portvals_in = compute_portvals(man_strat_orders_df_in, sv, commission=9.95, impact=0.005,sd=in_dates_sd,ed=in_dates_ed)
+    man_strat_portvals_in = calculate_portfolio_values(man_strat_orders_df_in, sv, commission=9.95, impact=0.005,sd=in_dates_sd,ed=in_dates_ed)
     benchmark_portvals_in = calculate_benchmark(sym="JPM", sd=in_dates_sd,ed=in_dates_ed, sv=sv)
 
     man_strat_trades_df_out = man_strat.testPolicy(symbol = "JPM", sd = out_dates_sd, ed = out_dates_ed, sv=sv)
     man_strat_orders_df_out = trades_to_orders(man_strat_trades_df_out, sym)
 
-    man_strat_portvals_out = compute_portvals(man_strat_orders_df_out, sv, commission=9.95, impact=0.005, sd=out_dates_sd, ed=out_dates_ed)
+    man_strat_portvals_out = calculate_portfolio_values(man_strat_orders_df_out, sv, commission=9.95, impact=0.005, sd=out_dates_sd, ed=out_dates_ed)
     benchmark_portvals_out = calculate_benchmark(sym = "JPM", sd = out_dates_sd, ed=out_dates_ed, sv=sv)
     """
-    print("Manual Strategy in-sample")
+    print("set indicator in-sample")
     calculate_metrics(man_strat_portvals_in,in_dates_sd,in_dates_ed)
     print("Benchmark in-sample")
     calculate_metrics(benchmark_portvals_in,in_dates_sd,in_dates_ed)
-    print("Manual Strategy out-of-sample")
+    print("set indicator out-of-sample")
     calculate_metrics(man_strat_portvals_out,out_dates_sd,out_dates_ed)
     print("Benchmark out-of-sample")
     calculate_metrics(benchmark_portvals_out,out_dates_sd,out_dates_ed)

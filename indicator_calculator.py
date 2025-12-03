@@ -1,18 +1,15 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime as dt
-from util import get_data
+from data_utils import fetch_stock_data
 
-
-def author():
-    return 'jkim3070'
 
 
 def compute_price_sma(sd, ed, symbol, window_size=20, plot=False, price_series=None):
     extended_sd = sd - pd.Timedelta(2 * window_size, 'D')
 
     if price_series is None:
-        df = get_data([symbol], pd.date_range(extended_sd, ed))
+        df = fetch_stock_data([symbol], pd.date_range(extended_sd, ed))
         s_all = df[[symbol]].ffill().bfill()[symbol]
     else:
         s_all = pd.Series(price_series).ffill().bfill()
@@ -47,7 +44,7 @@ def compute_price_sma(sd, ed, symbol, window_size=20, plot=False, price_series=N
 def compute_bb_percentage(sd, ed, symbol, window_size=20, plot=False, price_series=None):
     extended_sd = sd - pd.Timedelta(2 * window_size, 'D')
     if price_series is None:
-        s_all = get_data([symbol], pd.date_range(extended_sd, ed))[symbol].ffill().bfill()
+        s_all = fetch_stock_data([symbol], pd.date_range(extended_sd, ed))[symbol].ffill().bfill()
     else:
         s_all = pd.Series(price_series).ffill().bfill()
 
@@ -87,7 +84,7 @@ def compute_bb_percentage(sd, ed, symbol, window_size=20, plot=False, price_seri
 def compute_momentum(sd, ed, symbol, N=20, plot=False, price_series=None):
     extended_sd = sd - pd.Timedelta(2 * N, 'D')
     if price_series is None:
-        s_all = get_data([symbol], pd.date_range(extended_sd, ed))[symbol].ffill().bfill()
+        s_all = fetch_stock_data([symbol], pd.date_range(extended_sd, ed))[symbol].ffill().bfill()
     else:
         s_all = pd.Series(price_series).ffill().bfill()
 
@@ -120,7 +117,7 @@ def compute_macd(sd, ed, symbol, delta=26, plot=False, price_series=None):
     extended_sd = sd - pd.Timedelta(2 * delta, 'D')
 
     if price_series is None:
-        df_price = get_data([symbol], pd.date_range(extended_sd, ed))[symbol]
+        df_price = fetch_stock_data([symbol], pd.date_range(extended_sd, ed))[symbol]
         df_price = df_price.ffill().bfill()
     else:
         df_price = pd.Series(price_series).ffill().bfill()
@@ -162,7 +159,7 @@ def compute_ppo(sd, ed, symbol, short_window=12, long_window=26, signal_window=9
     extended_sd = sd - pd.Timedelta(2 * long_window, 'D')
 
     if price_series is None:
-        df_price = get_data([symbol], pd.date_range(extended_sd, ed))[symbol]
+        df_price = fetch_stock_data([symbol], pd.date_range(extended_sd, ed))[symbol]
         df_price = df_price.ffill().bfill()
     else:
         df_price = pd.Series(price_series).ffill().bfill()

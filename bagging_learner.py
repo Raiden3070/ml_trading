@@ -1,25 +1,22 @@
 import numpy as np
 
 
-class BagLearner(object):
+class BaggingLearner(object):
 
-    def __init__(self, learner, bags, kwargs, boost, verbose):
+    def __init__(self, learner, bags, kwargs, boost):
 
         self.boost = boost
-        self.verbose = verbose
         self.learners = []
         for i in range(bags):
             self.learners.append(learner(**kwargs))
 
-    def author(self):
-        return 'jkim3070'
 
-    def add_evidence(self, data_x, data_y):
+    def append_training_data(self, data_x, data_y):
         for learner in self.learners:
             bag_index = np.random.choice(range(data_x.shape[0]), data_x.shape[0], replace=True)
             bagged_data_x = data_x[bag_index]
             bagged_data_y = data_y[bag_index]
-            learner.add_evidence(bagged_data_x, bagged_data_y)
+            learner.append_training_data(bagged_data_x, bagged_data_y)
 
     def query(self, values):
         # Collect predictions from each learner, shape -> (bags, n_samples)

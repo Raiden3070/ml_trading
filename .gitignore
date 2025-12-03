@@ -32,8 +32,12 @@ Thumbs.db
 # App caches, data, and artifacts
 .av_cache/
 images/
-data/
 .cache/
+
+# Keep only the specific demo CSV; ignore other large data files
+data/*
+!data/GOOG_demo.csv
+!data/GOOG_TIME_SERIES_DAILY_full.csv
 
 # Tests and coverage
 .pytest_cache/

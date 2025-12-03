@@ -67,8 +67,32 @@ def fetch_daily_close(symbol: str,
 
     key = "Time Series (Daily)"
     if key not in data:
-        # Alpha Vantage sometimes returns a note on throttling or error message
-        raise RuntimeError(f"Alpha Vantage response missing daily series. Response keys: {list(data.keys())}")
+        # Handle common API responses gracefully
+        info_msg = None
+        if isinstance(data, dict):
+            # Typical keys: 'Note', 'Information', 'Error Message'
+            info_msg = data.get("Note") or data.get("Information") or data.get("Error Message")
+
+        # If using free key, Alpha Vantage may restrict outputsize=full. Retry with compact.
+        if outputsize == "full":
+            params_retry = dict(params)
+            params_retry["outputsize"] = "compact"
+            resp2 = requests.get(API_URL, params=params_retry, timeout=30)
+            resp2.raise_for_status()
+            data2 = resp2.json()
+            if key in data2:
+                data = data2
+            else:
+                raise RuntimeError(
+                    f"Alpha Vantage response missing daily series. Response keys: {list(data2.keys())};"
+                    f" original message: {info_msg or 'N/A'}"
+                )
+        else:
+            # No series and not 'full' -> surface the server message
+            raise RuntimeError(
+                f"Alpha Vantage response missing daily series. Response keys: {list(data.keys())};"
+                f" server message: {info_msg or 'N/A'}"
+            )
 
     ts = pd.DataFrame.from_dict(data[key], orient="index")
     # Columns are like '1. open','2. high','3. low','4. close','5. volume'

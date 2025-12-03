@@ -174,13 +174,13 @@ def main():
                     full_series = df_fb["GOOG"].astype(float)
                     prices_train = full_series.loc[tr_sd:tr_ed]
                     prices_test = full_series.loc[te_sd:te_ed]
-                    st.warning("Using bundled GOOG dataset due to API rate limit.")
+                    st.warning("Using bundled GOOG dataset due to API error or rate limit.")
                 else:
                     st.error("Bundled GOOG fallback file found but missing 'GOOG' column.")
                     st.stop()
             else:
                 st.error(f"Data fetch failed: {re}")
-                st.info("Tip: Alpha Vantage free tier allows up to 5 requests/min and up to 25 requests/day. Wait a minute and try again.")
+                st.info("Tips: Try a different symbol (e.g., AAPL, MSFT), reduce date span to use compact output, or wait 60s to reset minute-rate limits.")
                 st.stop()
 
     if prices_train.empty:

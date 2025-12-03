@@ -1,13 +1,13 @@
-# ML4T Strategy Learner – Live Alpha Vantage Demo
+# ML trading Demo
 
-A lightweight demo of your ML4T strategy learner running on live Alpha Vantage daily close data. Includes:
+A lightweight demo ML trading running on live Alpha Vantage daily close data. Includes:
 - Alpha Vantage fetcher with on-disk cache (`.av_cache/`)
 - Predict-today runner (`predict_today.py`)
 - Streamlit web app (`streamlit_app.py`) to pick symbol/dates and see BUY/SELL/HOLD and charts
 
 ## Setup
 
-1) Create/activate the project virtual environment (optional if you already have one):
+1) Create/activate the project virtual environment :
 - VS Code should auto-activate `.venv` in this folder. If not, create one:
 
 ```powershell

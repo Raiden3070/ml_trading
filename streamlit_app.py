@@ -257,7 +257,7 @@ def main():
         st.metric(label=f"{symbol} – {last_ts.date()}", value=label)
 
     # Optional: simulate portfolios for context
-    with st.expander("Show normalized simulated portfolios (benchmark vs learner)"):
+    with st.expander("Show normalized simulated portfolios of benchmark(buy at the start and hold) vs learner"):
         # Use previously computed sl_trades
         sl_orders = trades_to_orders(sl_trades, symbol)
         sl_portvals = calculate_portfolio_values(sl_orders, start_val=100000, commission=commission, impact=impact,

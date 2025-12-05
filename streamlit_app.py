@@ -54,6 +54,13 @@ def main():
     st.title("Machine Learning for Stock Purchase Decisions")
     st.caption("Fetch live prices, train on a window, and get BUY/SELL/HOLD decisions.")
 
+    # Global notice: GOOG is preloaded; Alpha Vantage has rate limits
+    st.info(
+        "GOOG stock data is preloaded. "
+        "Alpha Vantage stock data API free tier has rate limits (5 requests per min, 25 requests per day). "
+        "If you see a fetch error for other symbols, wait for the limit to refresh or use the preloaded GOOG."
+    )
+
     api_key = get_api_key()
     if not api_key:
         st.warning("Set ALPHAVANTAGE_API_KEY in your environment or Streamlit secrets to use live data.")
@@ -117,7 +124,7 @@ def main():
                 _df_info = pd.read_csv(goog_full_csv, index_col=0, parse_dates=True)
                 last_dt = _df_info.index.max().date() if not _df_info.empty else None
                 if symbol.upper() == "GOOG":
-                    st.info(f"GOOG is preloaded (offline). You can train/test without API limits up to {last_dt or 'the bundled end date'}. Data is not live.")
+                    st.info(f"GOOG is preloaded (offline). You can train/test without API limits up to {last_dt or 'the bundled end date'}.")
                 else:
                     st.caption(f"Tip: GOOG is preloaded offline up to {last_dt or 'the bundled end date'} for unlimited demo runs (not live).")
         except Exception:
@@ -143,10 +150,28 @@ def main():
         span_days = (combined_ed - combined_sd).days
         outputsize = "compact" if span_days <= 100 else "full"
 
+
         try:
-            full_series = cached_fetch(symbol, combined_sd.isoformat(), combined_ed.isoformat(), outputsize=outputsize)
-            prices_train = full_series.loc[tr_sd:tr_ed]
-            prices_test = full_series.loc[te_sd:te_ed]
+            # Prefer bundled offline GOOG data when symbol is GOOG to avoid API/outputsize limitations
+            data_dir = os.path.join(os.path.dirname(__file__), "data")
+            fallback_csv = os.path.join(data_dir, "GOOG_TIME_SERIES_DAILY_full.csv")
+            if symbol.upper() == "GOOG" and os.path.isfile(fallback_csv):
+                df_fb = pd.read_csv(fallback_csv, index_col=0, parse_dates=True)
+                if "GOOG" in df_fb.columns:
+                    full_series = df_fb["GOOG"].astype(float)
+                    prices_train = full_series.loc[tr_sd:tr_ed]
+                    prices_test = full_series.loc[te_sd:te_ed]
+                    st.info("Using bundled GOOG dataset (offline). Alpha Vantage not required for GOOG.")
+                else:
+                    # If file exists but lacks expected column, fall back to API
+                    full_series = cached_fetch(symbol, combined_sd.isoformat(), combined_ed.isoformat(), outputsize=outputsize)
+                    prices_train = full_series.loc[tr_sd:tr_ed]
+                    prices_test = full_series.loc[te_sd:te_ed]
+            else:
+                # Non-GOOG or no offline file: use API
+                full_series = cached_fetch(symbol, combined_sd.isoformat(), combined_ed.isoformat(), outputsize=outputsize)
+                prices_train = full_series.loc[tr_sd:tr_ed]
+                prices_test = full_series.loc[te_sd:te_ed]
         except ValueError as ve:
             # No API key: try bundled GOOG full CSV fallback
             data_dir = os.path.join(os.path.dirname(__file__), "data")
@@ -180,7 +205,7 @@ def main():
                     st.stop()
             else:
                 st.error(f"Data fetch failed: {re}")
-                st.info("Tips: Try a different symbol (e.g., AAPL, MSFT), reduce date span to use compact output, or wait 60s to reset minute-rate limits.")
+                st.info("Alpha Vantage is rate limited (5 requests per min, 25 requests per day). Please wait and retry, or use the preloaded GOOG symbol.")
                 st.stop()
 
     if prices_train.empty:

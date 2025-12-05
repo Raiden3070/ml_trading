@@ -266,7 +266,11 @@ def main():
 
         bench = pd.Series(0, index=prices_test.index, name=symbol).to_frame()
         if not bench.empty:
-            bench.iloc[0] = 1000
+            # Buy shares sized to start capital at first test price to avoid leverage
+            first_price = float(prices_test.iloc[0])
+            start_val = 100000
+            qty = int(start_val / first_price) if first_price > 0 else 0
+            bench.iloc[0] = qty
         bench_orders = trades_to_orders(bench, symbol)
         bench_portvals = calculate_portfolio_values(bench_orders, start_val=100000, commission=commission, impact=impact,
                                           sd=te_sd, ed=te_ed,

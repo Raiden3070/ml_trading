@@ -56,7 +56,7 @@ def main():
 
     # Global notice: GOOG is preloaded; Alpha Vantage has rate limits
     st.info(
-        "GOOG stock data is preloaded. "
+        "GOOG stock data is preloaded until 2025-10-31. "
         "Alpha Vantage stock data API free tier has rate limits (5 requests per min, 25 requests per day). "
         "If you see a fetch error for other symbols, wait for the limit to refresh or use the preloaded GOOG."
     )
@@ -72,6 +72,7 @@ def main():
         train_start = st.date_input(
             "Train start",
             value=dt.date(2023, 1, 1),
+            min_value=dt.date(2015, 1, 1),
             help="Start of training window. For realistic results, the training period should PRECEDE the test/prediction window."
         )
         train_end = st.date_input(
@@ -81,7 +82,7 @@ def main():
         )
         test_end = st.date_input(
             "Test up to",
-            value=dt.date.today(),
+            value=dt.date(2025, 10, 31),
             help="The last date in the test window (prediction window ends here)."
         )
         test_months = st.slider(

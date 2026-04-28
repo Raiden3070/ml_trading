@@ -89,7 +89,7 @@ def main():
             "Test window (months)",
             min_value=3,
             max_value=24,
-            value=6,
+            value=12,
             step=1,
             help="Length of the test window counted backwards from 'Test up to'."
         )

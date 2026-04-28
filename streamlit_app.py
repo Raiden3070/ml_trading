@@ -78,6 +78,7 @@ def main():
         train_end = st.date_input(
             "Train end",
             value=dt.date(2023, 12, 31),
+            min_value=dt.date(2015, 1, 1),
             help="End of training window. Avoid overlapping with the test window to prevent look-ahead bias."
         )
         test_end = st.date_input(
@@ -134,7 +135,14 @@ def main():
 
         run_btn = st.button("Train + Predict")
 
-    if not run_btn:
+    # Auto-run once on first load so default plots render immediately.
+    if "auto_run_once" not in st.session_state:
+        st.session_state.auto_run_once = True
+
+    run_requested = run_btn or st.session_state.auto_run_once
+    st.session_state.auto_run_once = False
+
+    if not run_requested:
         st.info("Select your parameters in the sidebar and click 'Train + Predict'.")
         return
 

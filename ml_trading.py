@@ -85,16 +85,38 @@ class MLTrading(object):
         dataY = self.learner.query(dataX)
 
 
-        trades = pd.DataFrame(index=prices.index, columns=[symbol])
-        holding = 0
+        trades = pd.DataFrame(index=prices.index, columns=[symbol], dtype=float)
+        holding = 0.0
+        cash = float(sv)
         for i in range(len(prices)):
-            if dataY[i] == 1:  # LONG
-                trades.iloc[i] = 1000 - holding
-            elif dataY[i] == -1:  # SHORT
-                trades.iloc[i] = -1000 - holding
+            px = float(prices.iloc[i])
+            date = prices.index[i]
+
+            if px <= 0:
+                trades.loc[date, symbol] = 0.0
+                continue
+
+            equity = cash + (holding * px)
+            max_notional_shares = max((equity - self.commission) / (px * (1.0 + self.impact)), 0.0)
+
+            if dataY[i] == 1:  # LONG: deploy max affordable equity
+                target_holding = max_notional_shares
+            elif dataY[i] == -1:  # SHORT: deploy max affordable equity on the short side
+                target_holding = -max_notional_shares
             else:  # CASH
-                trades.iloc[i] = -holding
-            holding += trades.iloc[i]
+                target_holding = 0.0
+
+            trade = target_holding - holding
+            if abs(trade) < 1e-12:
+                trade = 0.0
+
+            if trade > 0:
+                cash -= (trade * px * (1.0 + self.impact)) + self.commission
+            elif trade < 0:
+                cash += ((-trade) * px * (1.0 - self.impact)) - self.commission
+
+            holding += trade
+            trades.loc[date, symbol] = trade
 
 # Debug output
             """
